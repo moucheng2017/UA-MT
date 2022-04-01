@@ -15,11 +15,11 @@ class PASBlock(nn.Module):
                 ops.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1))
 
                 attention_branch.append(nn.Upsample(scale_factor=2, mode='trilinear', align_corners=True))
-                attention_branch.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1, dilation=6))
+                attention_branch.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=6, stride=1, dilation=6))
 
             else:
                 ops.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1))
-                attention_branch.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1, dilation=6))
+                attention_branch.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=6, stride=1, dilation=6))
 
             if normalization == 'batchnorm':
                 ops.append(nn.BatchNorm3d(n_filters_out))
@@ -36,8 +36,13 @@ class PASBlock(nn.Module):
             if upsampling is True:
                 ops.append(nn.Upsample(scale_factor=2, mode='trilinear', align_corners=True))
                 ops.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1))
+
+                attention_branch.append(nn.Upsample(scale_factor=2, mode='trilinear', align_corners=True))
+                attention_branch.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=6, stride=1, dilation=6))
+
             else:
                 ops.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1))
+                attention_branch.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=6, stride=1, dilation=6))
 
         ops.append(nn.ReLU(inplace=True))
         attention_branch.append(nn.ReLU(inplace=True))
@@ -47,13 +52,14 @@ class PASBlock(nn.Module):
         self.residual_mode = residual
 
     def forward(self, x):
-        x = self.conv(x)
+        y = self.conv(x)
         a = self.side_conv(x)
+        # print(a.size())
         if self.residual_mode is True:
-            x = torch.sigmoid(a) * x + x
+            y = torch.sigmoid(a) * y + y
         else:
-            x = torch.sigmoid(a) * x
-        return x
+            y = torch.sigmoid(a) * y
+        return y
 
 
 class NASBlock(nn.Module):
@@ -69,15 +75,15 @@ class NASBlock(nn.Module):
                 ops.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1))
 
                 attention_branch.append(nn.Upsample(scale_factor=2, mode='trilinear', align_corners=True))
-                attention_branch.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1))
+                attention_branch.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1, groups=n_filters_out))
 
-                attention_branch_stage2.append(nn.Conv3d(in_channels=n_filters_out, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1))
+                attention_branch_stage2.append(nn.Conv3d(in_channels=n_filters_out, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1, groups=n_filters_out))
 
             else:
                 ops.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1))
-                attention_branch.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1))
+                attention_branch.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1, groups=n_filters_out))
 
-                attention_branch_stage2.append(nn.Conv3d(in_channels=n_filters_out, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1))
+                attention_branch_stage2.append(nn.Conv3d(in_channels=n_filters_out, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1, groups=n_filters_out))
 
             if normalization == 'batchnorm':
                 ops.append(nn.BatchNorm3d(n_filters_out))
@@ -99,15 +105,15 @@ class NASBlock(nn.Module):
                 ops.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1))
 
                 attention_branch.append(nn.Upsample(scale_factor=2, mode='trilinear', align_corners=True))
-                attention_branch.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1))
+                attention_branch.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1, groups=n_filters_out))
 
-                attention_branch_stage2.append(nn.Conv3d(in_channels=n_filters_out, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1))
+                attention_branch_stage2.append(nn.Conv3d(in_channels=n_filters_out, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1, groups=n_filters_out))
 
             else:
                 ops.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1))
-                attention_branch.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1))
+                attention_branch.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1, groups=n_filters_out))
 
-                attention_branch_stage2.append(nn.Conv3d(in_channels=n_filters_out, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1))
+                attention_branch_stage2 .append(nn.Conv3d(in_channels=n_filters_out, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1, groups=n_filters_out))
 
         ops.append(nn.ReLU(inplace=True))
         attention_branch.append(nn.ReLU(inplace=True))
@@ -119,14 +125,14 @@ class NASBlock(nn.Module):
         self.residual_mode = residual
 
     def forward(self, x):
-        x = self.conv(x)
+        y = self.conv(x)
         a = self.side_conv(x)
         a = self.side_conv_s2(a) + a
         if self.residual_mode is True:
-            x = torch.sigmoid(a) * x + x
+            y = torch.sigmoid(a) * y + y
         else:
-            x = torch.sigmoid(a) * x
-        return x
+            y = torch.sigmoid(a) * y
+        return y
 
 
 class PNASBlock(nn.Module):
@@ -147,7 +153,7 @@ class PNASBlock(nn.Module):
                 negative_attention_branch_stage2.append(nn.Conv3d(in_channels=n_filters_out, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1))
 
                 positive_attention_branch.append(nn.Upsample(scale_factor=2, mode='trilinear', align_corners=True))
-                positive_attention_branch.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1, dilation=6))
+                positive_attention_branch.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=6, stride=1, dilation=6))
 
             else:
                 ops.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1))
@@ -155,7 +161,7 @@ class PNASBlock(nn.Module):
                 negative_attention_branch_stage1.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1))
                 negative_attention_branch_stage2.append(nn.Conv3d(in_channels=n_filters_out, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1))
 
-                positive_attention_branch.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1, dilation=6))
+                positive_attention_branch.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=6, stride=1, dilation=6))
 
             if normalization == 'batchnorm':
                 ops.append(nn.BatchNorm3d(n_filters_out))
@@ -390,16 +396,16 @@ class VNetMisMatchEfficient(nn.Module):
         self.block_five = ConvBlock(3, n_filters * 16, n_filters * 16, normalization=normalization)
         self.block_five_up = PNASBlock(n_filters * 16, n_filters * 8, normalization=normalization, upsampling=True)
 
-        self.block_six = PNASBlock(3, n_filters * 8, n_filters * 8, normalization=normalization)
+        self.block_six = PNASBlock(n_filters * 8, n_filters * 8, normalization=normalization)
         self.block_six_up = PNASBlock(n_filters * 8, n_filters * 4, normalization=normalization, upsampling=True)
 
-        self.block_seven = PNASBlock(3, n_filters * 4, n_filters * 4, normalization=normalization)
+        self.block_seven = PNASBlock(n_filters * 4, n_filters * 4, normalization=normalization)
         self.block_seven_up = PNASBlock(n_filters * 4, n_filters * 2, normalization=normalization, upsampling=True)
 
-        self.block_eight = PNASBlock(2, n_filters * 2, n_filters * 2, normalization=normalization)
+        self.block_eight = PNASBlock(n_filters * 2, n_filters * 2, normalization=normalization)
         self.block_eight_up = PNASBlock(n_filters * 2, n_filters, normalization=normalization, upsampling=True)
 
-        self.block_nine = PNASBlock(1, n_filters, n_filters, normalization=normalization)
+        self.block_nine = PNASBlock(n_filters, n_filters, normalization=normalization)
         self.out_conv = nn.Conv3d(n_filters, n_classes, 1, padding=0)
 
         self.dropout = nn.Dropout3d(p=0.5, inplace=False)
@@ -481,7 +487,7 @@ class VNetMisMatchEfficient(nn.Module):
 
 
 class VNetMisMatch(nn.Module):
-    def __init__(self, n_channels=3, n_classes=2, n_filters=16, normalization='none', has_dropout=False):
+    def __init__(self, n_channels=3, n_classes=2, n_filters=8, normalization='none', has_dropout=False):
         super(VNetMisMatch, self).__init__()
         self.has_dropout = has_dropout
 
@@ -501,26 +507,26 @@ class VNetMisMatch(nn.Module):
         self.block_five_up_p = PASBlock(n_filters * 16, n_filters * 8, normalization=normalization, upsampling=True)
         self.block_five_up_n = NASBlock(n_filters * 16, n_filters * 8, normalization=normalization, upsampling=True)
 
-        self.block_six_p = PASBlock(3, n_filters * 8, n_filters * 8, normalization=normalization)
+        self.block_six_p = PASBlock(n_filters * 8, n_filters * 8, normalization=normalization)
         self.block_six_up_p = PASBlock(n_filters * 8, n_filters * 4, normalization=normalization, upsampling=True)
 
-        self.block_six_n = NASBlock(3, n_filters * 8, n_filters * 8, normalization=normalization)
+        self.block_six_n = NASBlock(n_filters * 8, n_filters * 8, normalization=normalization)
         self.block_six_up_n = NASBlock(n_filters * 8, n_filters * 4, normalization=normalization, upsampling=True)
 
-        self.block_seven_p = PASBlock(3, n_filters * 4, n_filters * 4, normalization=normalization)
+        self.block_seven_p = PASBlock(n_filters * 4, n_filters * 4, normalization=normalization)
         self.block_seven_up_p = PASBlock(n_filters * 4, n_filters * 2, normalization=normalization, upsampling=True)
 
-        self.block_seven_n = NASBlock(3, n_filters * 4, n_filters * 4, normalization=normalization)
+        self.block_seven_n = NASBlock(n_filters * 4, n_filters * 4, normalization=normalization)
         self.block_seven_up_n = NASBlock(n_filters * 4, n_filters * 2, normalization=normalization, upsampling=True)
 
-        self.block_eight_p = PASBlock(2, n_filters * 2, n_filters * 2, normalization=normalization)
+        self.block_eight_p = PASBlock(n_filters * 2, n_filters * 2, normalization=normalization)
         self.block_eight_up_p = PASBlock(n_filters * 2, n_filters, normalization=normalization, upsampling=True)
 
-        self.block_eight_n = NASBlock(2, n_filters * 2, n_filters * 2, normalization=normalization)
+        self.block_eight_n = NASBlock(n_filters * 2, n_filters * 2, normalization=normalization)
         self.block_eight_up_n = NASBlock(n_filters * 2, n_filters, normalization=normalization, upsampling=True)
 
-        self.block_nine_p = PASBlock(1, n_filters, n_filters, normalization=normalization)
-        self.block_nine_n = NASBlock(1, n_filters, n_filters, normalization=normalization)
+        self.block_nine_p = PASBlock(n_filters, n_filters, normalization=normalization)
+        self.block_nine_n = NASBlock(n_filters, n_filters, normalization=normalization)
 
         self.out_conv = nn.Conv3d(n_filters, n_classes, 1, padding=0)
 
@@ -555,7 +561,8 @@ class VNetMisMatch(nn.Module):
         x3 = features[2]
         x4 = features[3]
         x5 = features[4]
-
+        # print(x5.size())
+        # print(self.block_five_up_p)
         x5_up_p = self.block_five_up_p(x5)
         x5_up_p = x5_up_p + x4
         x5_up_n = self.block_five_up_n(x5)

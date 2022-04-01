@@ -26,6 +26,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--root_path', type=str, default='../data/2018LA_Seg_Training Set/', help='Name of Experiment')
 parser.add_argument('--exp', type=str,  default='UAMT_unlabel', help='model_name')
 parser.add_argument('--max_iterations', type=int,  default=6000, help='maximum epoch number to train')
+# parser.add_argument('--batch_size', type=int, default=2, help='batch_size per gpu')
+# parser.add_argument('--labeled_bs', type=int, default=1, help='labeled_batch_size per gpu')
 parser.add_argument('--batch_size', type=int, default=4, help='batch_size per gpu')
 parser.add_argument('--labeled_bs', type=int, default=2, help='labeled_batch_size per gpu')
 parser.add_argument('--base_lr', type=float,  default=0.01, help='maximum epoch number to train')
@@ -91,7 +93,7 @@ if __name__ == "__main__":
         # if ema:
         #     for param in model.parameters():
         #         param.detach_()
-        # return model
+        return model
 
     model = create_model()
     # ema_model = create_model(ema=True)
@@ -168,11 +170,12 @@ if __name__ == "__main__":
             supervised_loss = 0.5*(loss_seg+loss_seg_dice)
 
             consistency_weight = get_current_consistency_weight(iter_num//150)
-            consistency_dist = 0.5*consistency_criterion(outputs_p[labeled_bs:].detach(), outputs_n[labeled_bs:]) + 0.5*consistency_criterion(outputs_p[labeled_bs:], outputs_n[labeled_bs:].detach())#(batch, 2, 112,112,80)
+            consistency_dist = torch.sum(0.5*consistency_criterion(outputs_p[labeled_bs:].detach(), outputs_n[labeled_bs:]) + 0.5*consistency_criterion(outputs_p[labeled_bs:], outputs_n[labeled_bs:].detach()))#(batch, 2, 112,112,80)
+            # print(consistency_dist.size())
             threshold = (0.75+0.25*ramps.sigmoid_rampup(iter_num, max_iterations))*np.log(2)
             # mask = (uncertainty<threshold).float()
             # consistency_dist = torch.sum(mask*consistency_dist)/(2*torch.sum(mask)+1e-16)
-            consistency_loss = consistency_weight * torch.sum(consistency_dist)
+            consistency_loss = consistency_weight * consistency_dist
             loss = supervised_loss + consistency_loss
 
             optimizer.zero_grad()
