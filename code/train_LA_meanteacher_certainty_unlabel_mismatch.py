@@ -17,7 +17,7 @@ import torch.backends.cudnn as cudnn
 from torch.utils.data import DataLoader
 from torchvision.utils import make_grid
 
-from networks.vnet_mismatch import VNetMisMatchEfficient, VNetMisMatch
+from networks.vnet_mismatch import VNetMisMatch
 from dataloaders import utils
 from utils import ramps, losses
 from dataloaders.la_heart import LAHeart, RandomCrop, CenterCrop, RandomRotFlip, ToTensor, TwoStreamBatchSampler
@@ -35,6 +35,7 @@ parser.add_argument('--base_lr', type=float,  default=0.01, help='maximum epoch 
 parser.add_argument('--deterministic', type=int,  default=1, help='whether use deterministic training')
 parser.add_argument('--seed', type=int,  default=1337, help='random seed')
 parser.add_argument('--gpu', type=str,  default='0', help='GPU to use')
+# parser.add_argument('--save_location', type=str,  default='20220630a', help='save folder')
 ### costs
 # parser.add_argument('--ema_decay', type=float,  default=0.99, help='ema_decay')
 parser.add_argument('--consistency_type', type=str,  default="mse", help='consistency_type')
@@ -44,7 +45,7 @@ args = parser.parse_args()
 
 train_data_path = args.root_path
 snapshot_path = "../model_mismatch/" + args.exp + "/"
-
+# snapshot_path = "../" + args.save_location + '/' + args.exp + "/"
 
 os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
 batch_size = args.batch_size * len(args.gpu.split(','))
@@ -166,9 +167,13 @@ if __name__ == "__main__":
             loss_seg = 0.5*F.cross_entropy(outputs_p[:labeled_bs], label_batch[:labeled_bs]) + 0.5*F.cross_entropy(outputs_n[:labeled_bs], label_batch[:labeled_bs])
             outputs_soft_p = F.softmax(outputs_p, dim=1)
             outputs_soft_n = F.softmax(outputs_n, dim=1)
+            #
+            _, pseudo_label_p = torch.max(outputs_p, dim=1)
+            _, pseudo_label_n = torch.max(outputs_n, dim=1)
+            #
             outputs_soft_avg = (outputs_soft_p + outputs_soft_n) / 2
 
-            uncertainty = -1.0 * torch.sum(outputs_soft_avg * torch.log(outputs_soft_avg + 1e-6), dim=1, keepdim=True)
+            # uncertainty = -1.0 * torch.sum(outputs_soft_avg * torch.log(outputs_soft_avg + 1e-6), dim=1, keepdim=True)
 
             loss_seg_dice = losses.dice_loss(outputs_soft_avg[:labeled_bs, 1, :, :, :], label_batch[:labeled_bs] == 1)
             supervised_loss = 0.5*(loss_seg+loss_seg_dice)
@@ -178,12 +183,15 @@ if __name__ == "__main__":
             #                              0.5*consistency_criterion(outputs_p[labeled_bs:], outputs_n[labeled_bs:].detach()))#(batch, 2, 112,112,80)
             # print(outputs_p.mean())
             # print(outputs_n.mean())
-            consistency_dist = torch.sum(0.5*consistency_criterion(outputs_p.detach(), outputs_n) +
-                                         0.5*consistency_criterion(outputs_p, outputs_n.detach()))#(batch, 2, 112,112,80)
+            # consistency_dist = torch.sum(0.5*consistency_criterion(outputs_p.detach(), outputs_n) +
+            #                              0.5*consistency_criterion(outputs_p, outputs_n.detach()))#(batch, 2, 112,112,80)
+            consistency_dist = 0.25*F.cross_entropy(outputs_p[labeled_bs:], pseudo_label_n[labeled_bs:])+0.25*F.cross_entropy(outputs_n[labeled_bs:], pseudo_label_p[labeled_bs:])
+            consistency_dist += 0.25*losses.dice_loss(outputs_soft_p[:labeled_bs, 1, :, :, :], pseudo_label_n[:labeled_bs] == 1) + 0.25*losses.dice_loss(outputs_soft_n[:labeled_bs, 1, :, :, :], pseudo_label_p[:labeled_bs] == 1)
+
             # print(consistency_dist.size())
-            threshold = (0.75+0.25*ramps.sigmoid_rampup(iter_num, max_iterations))*np.log(2)
-            mask = (uncertainty < threshold).float()
-            consistency_dist = torch.sum(mask*consistency_dist)/(2*torch.sum(mask)+1e-16)
+            # threshold = (0.75+0.25*ramps.sigmoid_rampup(iter_num, max_iterations))*np.log(2)
+            # mask = (uncertainty < threshold).float()
+            # consistency_dist = torch.sum(mask*consistency_dist)/(2*torch.sum(mask)+1e-16)
             # consistency_dist = torch.mean(consistency_dist)
             consistency_loss = consistency_weight * consistency_dist
             loss = supervised_loss + consistency_loss
