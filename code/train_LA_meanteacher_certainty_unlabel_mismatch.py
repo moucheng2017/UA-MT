@@ -29,7 +29,7 @@ parser.add_argument('--max_iterations', type=int,  default=6000, help='maximum e
 # parser.add_argument('--batch_size', type=int, default=2, help='batch_size per gpu')
 # parser.add_argument('--labeled_bs', type=int, default=1, help='labeled_batch_size per gpu')
 parser.add_argument('--batch_size', type=int, default=4, help='batch_size per gpu')
-parser.add_argument('--width', type=str,  default=16, help='number of filters')
+parser.add_argument('--width', type=str,  default=8, help='number of filters')
 parser.add_argument('--labeled_bs', type=int, default=2, help='labeled_batch_size per gpu')
 parser.add_argument('--base_lr', type=float,  default=0.01, help='maximum epoch number to train')
 parser.add_argument('--deterministic', type=int,  default=1, help='whether use deterministic training')
@@ -89,7 +89,7 @@ if __name__ == "__main__":
 
     def create_model(ema=False):
         # Network definition
-        net = VNetMisMatch(n_channels=1, n_classes=num_classes, n_filters=args.width, normalization='batchnorm', has_dropout=True)
+        net = VNetMisMatch(n_channels=1, n_classes=num_classes, n_filters=args.width, normalization='batchnorm', has_dropout=False)
         model = net.cuda()
         # if ema:
         #     for param in model.parameters():
@@ -149,17 +149,17 @@ if __name__ == "__main__":
             # noise = torch.clamp(torch.randn_like(unlabeled_volume_batch) * 0.1, -0.2, 0.2)
             # ema_inputs = unlabeled_volume_batch + noise
             outputs_p, outputs_n = model(volume_batch)
-            T = 8
-            volume_batch_r = unlabeled_volume_batch.repeat(2, 1, 1, 1, 1)
-            stride = volume_batch_r.shape[0] // 2
-            preds = torch.zeros([stride * T, 2, 112, 112, 80]).cuda()
+            # T = 8
+            # volume_batch_r = unlabeled_volume_batch.repeat(2, 1, 1, 1, 1)
+            # stride = volume_batch_r.shape[0] // 2
+            # preds = torch.zeros([stride * T, 2, 112, 112, 80]).cuda()
             # for i in range(T//2):
             #     ema_inputs = volume_batch_r + torch.clamp(torch.randn_like(volume_batch_r) * 0.1, -0.2, 0.2)
             #     with torch.no_grad():
             #         preds[2 * stride * i:2 * stride * (i + 1)] = ema_model(ema_inputs)
-            preds = F.softmax(preds, dim=1)
-            preds = preds.reshape(T, stride, 2, 112, 112, 80)
-            preds = torch.mean(preds, dim=0)  #(batch, 2, 112,112,80)
+            # preds = F.softmax(preds, dim=1)
+            # preds = preds.reshape(T, stride, 2, 112, 112, 80)
+            # preds = torch.mean(preds, dim=0)  #(batch, 2, 112,112,80)
             # uncertainty = -1.0*torch.sum(preds*torch.log(preds + 1e-6), dim=1, keepdim=True) #(batch, 1, 112,112,80)
 
             ## calculate the loss
@@ -167,15 +167,24 @@ if __name__ == "__main__":
             outputs_soft_p = F.softmax(outputs_p, dim=1)
             outputs_soft_n = F.softmax(outputs_n, dim=1)
             outputs_soft_avg = (outputs_soft_p + outputs_soft_n) / 2
+
+            uncertainty = -1.0 * torch.sum(outputs_soft_avg * torch.log(outputs_soft_avg + 1e-6), dim=1, keepdim=True)
+
             loss_seg_dice = losses.dice_loss(outputs_soft_avg[:labeled_bs, 1, :, :, :], label_batch[:labeled_bs] == 1)
             supervised_loss = 0.5*(loss_seg+loss_seg_dice)
 
             consistency_weight = get_current_consistency_weight(iter_num//150)
-            consistency_dist = torch.sum(0.5*consistency_criterion(outputs_p[labeled_bs:].detach(), outputs_n[labeled_bs:]) + 0.5*consistency_criterion(outputs_p[labeled_bs:], outputs_n[labeled_bs:].detach()))#(batch, 2, 112,112,80)
+            # consistency_dist = torch.sum(0.5*consistency_criterion(outputs_p[labeled_bs:].detach(), outputs_n[labeled_bs:]) +
+            #                              0.5*consistency_criterion(outputs_p[labeled_bs:], outputs_n[labeled_bs:].detach()))#(batch, 2, 112,112,80)
+            # print(outputs_p.mean())
+            # print(outputs_n.mean())
+            consistency_dist = torch.sum(0.5*consistency_criterion(outputs_p.detach(), outputs_n) +
+                                         0.5*consistency_criterion(outputs_p, outputs_n.detach()))#(batch, 2, 112,112,80)
             # print(consistency_dist.size())
             threshold = (0.75+0.25*ramps.sigmoid_rampup(iter_num, max_iterations))*np.log(2)
-            # mask = (uncertainty<threshold).float()
-            # consistency_dist = torch.sum(mask*consistency_dist)/(2*torch.sum(mask)+1e-16)
+            mask = (uncertainty < threshold).float()
+            consistency_dist = torch.sum(mask*consistency_dist)/(2*torch.sum(mask)+1e-16)
+            # consistency_dist = torch.mean(consistency_dist)
             consistency_loss = consistency_weight * consistency_dist
             loss = supervised_loss + consistency_loss
 

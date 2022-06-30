@@ -6007,3 +6007,11 @@
 [19:53:13.825] iteration 6000 : loss : 0.035690 cons_dist: 0.021079, loss_weight: 0.099688
 [19:53:14.196] save model to ../model/UAMT_unlabel/iter_6000.pth
 [19:53:14.378] save model to ../model/UAMT_unlabel/iter_6000.pth
+[14:43:30.655] Namespace(root_path='../data/2018LA_Seg_Training Set/', exp='UAMT_unlabel', max_iterations=6000, batch_size=4, labeled_bs=2, width=16, base_lr=0.01, deterministic=1, seed=1337, gpu='0', ema_decay=0.99, consistency_type='mse', consistency=0.1, consistency_rampup=40.0)
+[14:43:34.052] 8 itertations per epoch
+[14:43:36.337] iteration 1 : loss : 0.594115 cons_dist: 0.175990, loss_weight: 0.000674
+[14:43:37.150] iteration 2 : loss : 0.649764 cons_dist: 0.081432, loss_weight: 0.000674
+[14:43:37.949] iteration 3 : loss : 0.536846 cons_dist: 0.107950, loss_weight: 0.000674
+[14:43:38.773] iteration 4 : loss : 0.548473 cons_dist: 0.037956, loss_weight: 0.000674
+[14:43:39.594] iteration 5 : loss : 0.514693 cons_dist: 0.031520, loss_weight: 0.000674
+[14:43:40.429] iteration 6 : loss : 0.552468 cons_dist: 0.037689, loss_weight: 0.000674

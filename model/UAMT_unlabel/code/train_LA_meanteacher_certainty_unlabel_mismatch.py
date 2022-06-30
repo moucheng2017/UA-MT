@@ -29,7 +29,7 @@ parser.add_argument('--max_iterations', type=int,  default=6000, help='maximum e
 # parser.add_argument('--batch_size', type=int, default=2, help='batch_size per gpu')
 # parser.add_argument('--labeled_bs', type=int, default=1, help='labeled_batch_size per gpu')
 parser.add_argument('--batch_size', type=int, default=4, help='batch_size per gpu')
-parser.add_argument('--width', type=str,  default=16, help='number of filters')
+parser.add_argument('--width', type=str,  default=8, help='number of filters')
 parser.add_argument('--labeled_bs', type=int, default=2, help='labeled_batch_size per gpu')
 parser.add_argument('--base_lr', type=float,  default=0.01, help='maximum epoch number to train')
 parser.add_argument('--deterministic', type=int,  default=1, help='whether use deterministic training')
@@ -43,7 +43,7 @@ parser.add_argument('--consistency_rampup', type=float,  default=40.0, help='con
 args = parser.parse_args()
 
 train_data_path = args.root_path
-snapshot_path = "../model_mismatch/" + args.exp + "/"
+snapshot_path = "../model_mismatch_20220630/" + args.exp + "/"
 
 
 os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
@@ -160,7 +160,7 @@ if __name__ == "__main__":
             preds = F.softmax(preds, dim=1)
             preds = preds.reshape(T, stride, 2, 112, 112, 80)
             preds = torch.mean(preds, dim=0)  #(batch, 2, 112,112,80)
-            # uncertainty = -1.0*torch.sum(preds*torch.log(preds + 1e-6), dim=1, keepdim=True) #(batch, 1, 112,112,80)
+            uncertainty = -1.0*torch.sum(preds*torch.log(preds + 1e-6), dim=1, keepdim=True) #(batch, 1, 112,112,80)
 
             ## calculate the loss
             loss_seg = 0.5*F.cross_entropy(outputs_p[:labeled_bs], label_batch[:labeled_bs]) + 0.5*F.cross_entropy(outputs_n[:labeled_bs], label_batch[:labeled_bs])
@@ -171,11 +171,14 @@ if __name__ == "__main__":
             supervised_loss = 0.5*(loss_seg+loss_seg_dice)
 
             consistency_weight = get_current_consistency_weight(iter_num//150)
-            consistency_dist = torch.sum(0.5*consistency_criterion(outputs_p[labeled_bs:].detach(), outputs_n[labeled_bs:]) + 0.5*consistency_criterion(outputs_p[labeled_bs:], outputs_n[labeled_bs:].detach()))#(batch, 2, 112,112,80)
+            # consistency_dist = torch.sum(0.5*consistency_criterion(outputs_p[labeled_bs:].detach(), outputs_n[labeled_bs:]) +
+            #                              0.5*consistency_criterion(outputs_p[labeled_bs:], outputs_n[labeled_bs:].detach()))#(batch, 2, 112,112,80)
+            consistency_dist = torch.sum(0.5*consistency_criterion(outputs_soft_p.detach(), outputs_soft_n) +
+                                         0.5*consistency_criterion(outputs_soft_p, outputs_soft_n.detach()))#(batch, 2, 112,112,80)
             # print(consistency_dist.size())
             threshold = (0.75+0.25*ramps.sigmoid_rampup(iter_num, max_iterations))*np.log(2)
-            # mask = (uncertainty<threshold).float()
-            # consistency_dist = torch.sum(mask*consistency_dist)/(2*torch.sum(mask)+1e-16)
+            mask = (uncertainty < threshold).float()
+            consistency_dist = torch.sum(mask*consistency_dist)/(2*torch.sum(mask)+1e-16)
             consistency_loss = consistency_weight * consistency_dist
             loss = supervised_loss + consistency_loss
 

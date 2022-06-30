@@ -24,7 +24,7 @@ image_list = [FLAGS.root_path +item.replace('\n', '')+"/mri_norm2.h5" for item i
 
 
 def test_calculate_metric(epoch_num):
-    net = VNetMisMatch(n_channels=1, n_classes=num_classes, n_filters=8, normalization='batchnorm', has_dropout=False).cuda()
+    net = VNetMisMatch(n_channels=1, n_classes=num_classes, n_filters=16, normalization='batchnorm', has_dropout=False).cuda()
     save_mode_path = os.path.join(snapshot_path, 'iter_' + str(epoch_num) + '.pth')
     net.load_state_dict(torch.load(save_mode_path))
     print("init weight from {}".format(save_mode_path))

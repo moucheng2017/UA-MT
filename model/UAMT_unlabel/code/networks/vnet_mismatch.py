@@ -487,7 +487,7 @@ class VNetMisMatchEfficient(nn.Module):
 
 
 class VNetMisMatch(nn.Module):
-    def __init__(self, n_channels=3, n_classes=2, n_filters=16, normalization='none', has_dropout=False):
+    def __init__(self, n_channels=3, n_classes=2, n_filters=8, normalization='none', has_dropout=False):
         super(VNetMisMatch, self).__init__()
         self.has_dropout = has_dropout
 
@@ -548,8 +548,8 @@ class VNetMisMatch(nn.Module):
 
         x5 = self.block_five(x4_dw)
         # x5 = F.dropout3d(x5, p=0.5, training=True)
-        if self.has_dropout:
-            x5 = self.dropout(x5)
+        # if self.has_dropout:
+        #     x5 = self.dropout(x5)
 
         res = [x1, x2, x3, x4, x5]
 
@@ -592,15 +592,15 @@ class VNetMisMatch(nn.Module):
         x9p = self.block_nine_p(x8_up_p)
         x9n = self.block_nine_n(x8_up_n)
         # x9 = F.dropout3d(x9, p=0.5, training=True)
-        if self.has_dropout:
-            x9p = self.dropout(x9p)
-        if self.has_dropout:
-            x9n = self.dropout(x9n)
+        # if self.has_dropout:
+        #     x9p = self.dropout(x9p)
+        # if self.has_dropout:
+        #     x9n = self.dropout(x9n)
         out_p = self.out_conv(x9p)
         out_n = self.out_conv(x9n)
         return out_p, out_n
 
-    def forward(self, input, turnoff_drop=False):
+    def forward(self, input, turnoff_drop=True):
         if turnoff_drop:
             has_dropout = self.has_dropout
             self.has_dropout = False

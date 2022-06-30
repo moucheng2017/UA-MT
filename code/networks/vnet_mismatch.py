@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 
 class PASBlock(nn.Module):
-    def __init__(self, n_filters_in, n_filters_out, normalization='none', upsampling=False, residual=True):
+    def __init__(self, n_filters_in, n_filters_out, normalization='none', upsampling=False, residual=True, dilation_rate=6):
         super(PASBlock, self).__init__()
         #
         ops = []
@@ -15,11 +15,11 @@ class PASBlock(nn.Module):
                 ops.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1))
 
                 attention_branch.append(nn.Upsample(scale_factor=2, mode='trilinear', align_corners=True))
-                attention_branch.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=6, stride=1, dilation=6))
+                attention_branch.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=dilation_rate, stride=1, dilation=dilation_rate))
 
             else:
                 ops.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1))
-                attention_branch.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=6, stride=1, dilation=6))
+                attention_branch.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=dilation_rate, stride=1, dilation=dilation_rate))
 
             if normalization == 'batchnorm':
                 ops.append(nn.BatchNorm3d(n_filters_out))
@@ -38,11 +38,11 @@ class PASBlock(nn.Module):
                 ops.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1))
 
                 attention_branch.append(nn.Upsample(scale_factor=2, mode='trilinear', align_corners=True))
-                attention_branch.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=6, stride=1, dilation=6))
+                attention_branch.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=dilation_rate, stride=1, dilation=dilation_rate))
 
             else:
                 ops.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=1, stride=1))
-                attention_branch.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=6, stride=1, dilation=6))
+                attention_branch.append(nn.Conv3d(in_channels=n_filters_in, out_channels=n_filters_out, kernel_size=3, padding=dilation_rate, stride=1, dilation=dilation_rate))
 
         ops.append(nn.ReLU(inplace=True))
         attention_branch.append(nn.ReLU(inplace=True))
@@ -487,7 +487,7 @@ class VNetMisMatchEfficient(nn.Module):
 
 
 class VNetMisMatch(nn.Module):
-    def __init__(self, n_channels=3, n_classes=2, n_filters=16, normalization='none', has_dropout=False):
+    def __init__(self, n_channels=3, n_classes=2, n_filters=8, normalization='none', has_dropout=False):
         super(VNetMisMatch, self).__init__()
         self.has_dropout = has_dropout
 
@@ -548,8 +548,8 @@ class VNetMisMatch(nn.Module):
 
         x5 = self.block_five(x4_dw)
         # x5 = F.dropout3d(x5, p=0.5, training=True)
-        if self.has_dropout:
-            x5 = self.dropout(x5)
+        # if self.has_dropout:
+        #     x5 = self.dropout(x5)
 
         res = [x1, x2, x3, x4, x5]
 
@@ -592,15 +592,15 @@ class VNetMisMatch(nn.Module):
         x9p = self.block_nine_p(x8_up_p)
         x9n = self.block_nine_n(x8_up_n)
         # x9 = F.dropout3d(x9, p=0.5, training=True)
-        if self.has_dropout:
-            x9p = self.dropout(x9p)
-        if self.has_dropout:
-            x9n = self.dropout(x9n)
+        # if self.has_dropout:
+        #     x9p = self.dropout(x9p)
+        # if self.has_dropout:
+        #     x9n = self.dropout(x9n)
         out_p = self.out_conv(x9p)
         out_n = self.out_conv(x9n)
         return out_p, out_n
 
-    def forward(self, input, turnoff_drop=False):
+    def forward(self, input, turnoff_drop=True):
         if turnoff_drop:
             has_dropout = self.has_dropout
             self.has_dropout = False
