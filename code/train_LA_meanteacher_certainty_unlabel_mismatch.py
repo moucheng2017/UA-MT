@@ -26,8 +26,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--root_path', type=str, default='../data/2018LA_Seg_Training Set/', help='Name of Experiment')
 parser.add_argument('--exp', type=str,  default='UAMT_unlabel', help='model_name')
 parser.add_argument('--max_iterations', type=int,  default=6000, help='maximum epoch number to train')
-# parser.add_argument('--batch_size', type=int, default=2, help='batch_size per gpu')
-# parser.add_argument('--labeled_bs', type=int, default=1, help='labeled_batch_size per gpu')
 parser.add_argument('--batch_size', type=int, default=4, help='batch_size per gpu')
 parser.add_argument('--width', type=str,  default=8, help='number of filters')
 parser.add_argument('--labeled_bs', type=int, default=2, help='labeled_batch_size per gpu')
@@ -39,7 +37,7 @@ parser.add_argument('--gpu', type=str,  default='0', help='GPU to use')
 ### costs
 # parser.add_argument('--ema_decay', type=float,  default=0.99, help='ema_decay')
 parser.add_argument('--consistency_type', type=str,  default="mse", help='consistency_type')
-parser.add_argument('--consistency', type=float,  default=0.1, help='consistency')
+parser.add_argument('--consistency', type=float,  default=1.0, help='consistency')
 parser.add_argument('--consistency_rampup', type=float,  default=40.0, help='consistency_rampup')
 args = parser.parse_args()
 
@@ -113,6 +111,7 @@ if __name__ == "__main__":
                            CenterCrop(patch_size),
                            ToTensor()
                        ]))
+
     labeled_idxs = list(range(16))
     unlabeled_idxs = list(range(16, 80))
     batch_sampler = TwoStreamBatchSampler(labeled_idxs, unlabeled_idxs, batch_size, batch_size-labeled_bs)
@@ -185,8 +184,12 @@ if __name__ == "__main__":
             # print(outputs_n.mean())
             # consistency_dist = torch.sum(0.5*consistency_criterion(outputs_p.detach(), outputs_n) +
             #                              0.5*consistency_criterion(outputs_p, outputs_n.detach()))#(batch, 2, 112,112,80)
-            consistency_dist = 0.25*F.cross_entropy(outputs_p[labeled_bs:], pseudo_label_n[labeled_bs:])+0.25*F.cross_entropy(outputs_n[labeled_bs:], pseudo_label_p[labeled_bs:])
-            consistency_dist += 0.25*losses.dice_loss(outputs_soft_p[:labeled_bs, 1, :, :, :], pseudo_label_n[:labeled_bs] == 1) + 0.25*losses.dice_loss(outputs_soft_n[:labeled_bs, 1, :, :, :], pseudo_label_p[:labeled_bs] == 1)
+
+            # consistency_dist = 0.25*F.cross_entropy(outputs_p[labeled_bs:], pseudo_label_n[labeled_bs:])+0.25*F.cross_entropy(outputs_n[labeled_bs:], pseudo_label_p[labeled_bs:])
+            # consistency_dist += 0.25*losses.dice_loss(outputs_soft_p[labeled_bs:, 1, :, :, :], pseudo_label_n[labeled_bs:] == 1) + 0.25*losses.dice_loss(outputs_soft_n[labeled_bs:, 1, :, :, :], pseudo_label_p[labeled_bs:] == 1)
+
+            consistency_dist = 0.25*F.cross_entropy(outputs_p, pseudo_label_n)+0.25*F.cross_entropy(outputs_n, pseudo_label_p)
+            consistency_dist += 0.25*losses.dice_loss(outputs_soft_p[:, 1, :, :, :], pseudo_label_n[:] == 1) + 0.25*losses.dice_loss(outputs_soft_n[:, 1, :, :, :], pseudo_label_p[:] == 1)
 
             # print(consistency_dist.size())
             # threshold = (0.75+0.25*ramps.sigmoid_rampup(iter_num, max_iterations))*np.log(2)
