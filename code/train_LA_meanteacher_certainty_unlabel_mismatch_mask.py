@@ -184,10 +184,14 @@ if __name__ == "__main__":
             consistency_weight = get_current_consistency_weight(iter_num//150)
             mask, _ = torch.max((outputs_p[labeled_bs:] + outputs_n[labeled_bs:]) / 2, dim=-1)
             print(mask.size())
+
             mask = mask.ge(0.5).float()
 
-            consistency_dist = (F.mse_loss(outputs_p[labeled_bs:], outputs_n[labeled_bs:].detach(), reduction='none') * mask).mean() + \
-                               (F.mse_loss(outputs_n[labeled_bs:], outputs_p[labeled_bs:].detach(), reduction='none') * mask).mean()
+            # consistency_dist = (F.mse_loss(outputs_p[labeled_bs:], outputs_n[labeled_bs:].detach(), reduction='none') * mask).mean() + \
+            #                    (F.mse_loss(outputs_n[labeled_bs:], outputs_p[labeled_bs:].detach(), reduction='none') * mask).mean()
+
+            consistency_dist = torch.nn.MSELoss(reduction='mean')(outputs_p[labeled_bs:], outputs_n[labeled_bs:].detach()) + \
+                               torch.nn.MSELoss(reduction='mean')(outputs_n[labeled_bs:], outputs_p[labeled_bs:].detach())
 
             consistency_loss = consistency_weight * consistency_dist * 0.5
 
