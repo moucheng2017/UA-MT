@@ -183,6 +183,7 @@ if __name__ == "__main__":
             # calculate the unsupervised loss:
             consistency_weight = get_current_consistency_weight(iter_num//150)
             mask, _ = torch.max((outputs_p[labeled_bs:] + outputs_n[labeled_bs:]) / 2, dim=-1)
+            print(mask.size())
             mask = mask.ge(0.5).float()
 
             consistency_dist = (F.mse_loss(outputs_p[labeled_bs:], outputs_n[labeled_bs:].detach(), reduction='none') * mask).mean() + \
