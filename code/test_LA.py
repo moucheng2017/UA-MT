@@ -7,7 +7,7 @@ from test_util import test_all_case
 parser = argparse.ArgumentParser()
 parser.add_argument('--root_path', type=str, default='../data/2018LA_Seg_Training Set/', help='Name of Experiment')
 # parser.add_argument('--model', type=str,  default='vnet_supervisedonly_dp', help='model_name')
-parser.add_argument('--model', type=str,  default='UAMT_unlabel', help='model_name')
+parser.add_argument('--model', type=str,  default='UAMT_unlabel_c1.0_l2', help='model_name')
 parser.add_argument('--gpu', type=str,  default='0', help='GPU to use')
 FLAGS = parser.parse_args()
 

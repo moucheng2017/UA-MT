@@ -6,13 +6,13 @@ from test_util_mismatch import test_all_case
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--root_path', type=str, default='../data/2018LA_Seg_Training Set/', help='Name of Experiment')
-parser.add_argument('--model', type=str,  default='UAMT_unlabel', help='model_name')
+parser.add_argument('--model', type=str,  default='Mismatch_unlabel_c1.0_l2', help='model_name')
 parser.add_argument('--gpu', type=str,  default='0', help='GPU to use')
 FLAGS = parser.parse_args()
 
 os.environ['CUDA_VISIBLE_DEVICES'] = FLAGS.gpu
-snapshot_path = "../model_mismatch/"+FLAGS.model+"/"
-test_save_path = "../model/prediction/"+FLAGS.model+"_post/"
+snapshot_path = "../model_mismatch_mask/"+FLAGS.model+"/"
+test_save_path = "../model_mismatch_mask/prediction/"+FLAGS.model+"_post/"
 if not os.path.exists(test_save_path):
     os.makedirs(test_save_path)
 
