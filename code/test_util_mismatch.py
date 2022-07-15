@@ -78,7 +78,7 @@ def test_single_case(net, image, stride_xy, stride_z, patch_size, num_classes=1)
                 test_patch = image[xs:xs+patch_size[0], ys:ys+patch_size[1], zs:zs+patch_size[2]]
                 test_patch = np.expand_dims(np.expand_dims(test_patch,axis=0),axis=0).astype(np.float32)
                 test_patch = torch.from_numpy(test_patch).cuda()
-                print(test_patch.size())
+                # print(test_patch.size())
                 y1, y2 = net(test_patch)
                 y1 = F.softmax(y1, dim=1)
                 y2 = F.softmax(y2, dim=1)
