@@ -73,8 +73,8 @@ if __name__ == "__main__":
 
     db_train = LAHeart(base_dir=train_data_path,
                        split='train',
-                       num=16,
-                       transform = transforms.Compose([
+                       num=args.labels,
+                       transform=transforms.Compose([
                           RandomRotFlip(),
                           RandomCrop(patch_size),
                           ToTensor(),
