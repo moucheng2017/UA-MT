@@ -39,5 +39,5 @@ def test_calculate_metric(epoch_num):
 
 
 if __name__ == '__main__':
-    metric = test_calculate_metric(2000)
+    metric = test_calculate_metric(5000)
     print(metric)
