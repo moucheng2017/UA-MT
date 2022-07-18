@@ -1,18 +1,26 @@
 import os
 import argparse
 import torch
-from networks.vnet_mismatch import VNetMisMatchEfficient, VNetMisMatch
+from networks.vnet_mismatch import VNetMisMatch
 from test_util_mismatch import test_all_case
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--root_path', type=str, default='../data/2018LA_Seg_Training Set/', help='Name of Experiment')
-parser.add_argument('--model', type=str,  default='Mismatch_unlabel_c1.0_l2_t0.0', help='model_name')
+parser.add_argument('--model', type=str,  default='Mismatch_unlabel', help='model_name')
 parser.add_argument('--gpu', type=str,  default='0', help='GPU to use')
+#
+parser.add_argument('--labels', type=int,  default=2, help='no of labelled data points')
+parser.add_argument('--threshold', type=float,  default=0.0, help='confidence threshold for masking')
+parser.add_argument('--consistency', type=float,  default=0.1, help='consistency')
+
 FLAGS = parser.parse_args()
 
+model_config = FLAGS.model + '_c' + str(FLAGS.consistency) + '_l' + str(FLAGS.labels) + '_t' + str(FLAGS.threshold) + "/"
+
+
 os.environ['CUDA_VISIBLE_DEVICES'] = FLAGS.gpu
-snapshot_path = "../model_mismatch_mask/"+FLAGS.model+"/"
-test_save_path = "../model_mismatch_mask/prediction/"+FLAGS.model+"_post/"
+snapshot_path = "../model_mismatch_mask/"+model_config+"/"
+test_save_path = "../model_mismatch_mask/prediction/"+model_config+"_post/"
 if not os.path.exists(test_save_path):
     os.makedirs(test_save_path)
 

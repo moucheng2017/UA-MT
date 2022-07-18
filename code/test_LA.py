@@ -6,14 +6,19 @@ from test_util import test_all_case
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--root_path', type=str, default='../data/2018LA_Seg_Training Set/', help='Name of Experiment')
-# parser.add_argument('--model', type=str,  default='vnet_supervisedonly_dp', help='model_name')
-parser.add_argument('--model', type=str,  default='UAMT_unlabel_c1.0_l2', help='model_name')
+parser.add_argument('--model', type=str,  default='UAMT_unlabel', help='model_name')
+parser.add_argument('--batch_size', type=int, default=2, help='batch_size per gpu')
+parser.add_argument('--consistency', type=float,  default=1.0, help='consistency')
+parser.add_argument('--labels', type=int,  default=2, help='no of labelled data points')
+
 parser.add_argument('--gpu', type=str,  default='0', help='GPU to use')
 FLAGS = parser.parse_args()
 
+model_config = FLAGS.model + '_c' + str(FLAGS.consistency) + '_l' + str(FLAGS.labels)
+
 os.environ['CUDA_VISIBLE_DEVICES'] = FLAGS.gpu
-snapshot_path = "../model/"+FLAGS.model+"/"
-test_save_path = "../model/prediction/"+FLAGS.model+"_post/"
+snapshot_path = "../model/" + model_config + "/"
+test_save_path = "../model/prediction/" + model_config+"_post/"
 if not os.path.exists(test_save_path):
     os.makedirs(test_save_path)
 
@@ -39,5 +44,5 @@ def test_calculate_metric(epoch_num):
 
 
 if __name__ == '__main__':
-    metric = test_calculate_metric(5000)
+    metric = test_calculate_metric(1000)
     print(metric)

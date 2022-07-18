@@ -1,101 +1,0 @@
-GPU Prolog Script v1.10
-This is a GPU node.
-Enough GPUs available.
-Allocating card 0
-Namespace(root_path='../data/2018LA_Seg_Training Set/', exp='UAMT_unlabel', max_iterations=6000, batch_size=4, labeled_bs=1, width=8, base_lr=0.01, deterministic=1, seed=1337, gpu='0', ema_decay=0.99, consistency_type='mse', consistency=0.001, consistency_rampup=40.0, labels=2)
-total 80 samples
-total 20 samples
-2 itertations per epoch
-  0%|                                        | 0/3001 [00:00<?, ?it/s]/SAN/medic/PerceptronHead/codes/UA-MT/code/train_LA_meanteacher_certainty_unlabel.py:78: UserWarning: This overload of add_ is deprecated:
-	add_(Number alpha, Tensor other)
-Consider using one of the following signatures instead:
-	add_(Tensor other, *, Number alpha) (Triggered internally at  /opt/conda/conda-bld/pytorch_1640811793227/work/torch/csrc/utils/python_arg_parser.cpp:1050.)
-  ema_param.data.mul_(alpha).add_(1 - alpha, param.data)
-iteration 1 : loss : 0.873231 cons_dist: 0.076990, loss_weight: 0.000007
-iteration 2 : loss : 0.726389 cons_dist: 0.180779, loss_weight: 0.000007
-  0%|                              | 1/3001 [00:05<4:19:51,  5.20s/it]iteration 3 : loss : 0.676233 cons_dist: 0.046849, loss_weight: 0.000007
-iteration 4 : loss : 0.711143 cons_dist: 0.032445, loss_weight: 0.000007
-  0%|                              | 2/3001 [00:09<3:55:40,  4.72s/it]iteration 5 : loss : 0.572963 cons_dist: 0.115284, loss_weight: 0.000007
-iteration 6 : loss : 0.718731 cons_dist: 0.069633, loss_weight: 0.000007
-  0%|                              | 3/3001 [00:14<3:57:20,  4.75s/it]iteration 7 : loss : 0.676855 cons_dist: 0.019279, loss_weight: 0.000007
-iteration 8 : loss : 0.636180 cons_dist: 0.055948, loss_weight: 0.000007
-  0%|                              | 4/3001 [00:18<3:43:00,  4.46s/it]iteration 9 : loss : 0.574946 cons_dist: 0.070980, loss_weight: 0.000007
-iteration 10 : loss : 0.592201 cons_dist: 0.117556, loss_weight: 0.000007
-  0%|                              | 5/3001 [00:22<3:29:59,  4.21s/it]iteration 11 : loss : 0.598010 cons_dist: 0.134124, loss_weight: 0.000007
-iteration 12 : loss : 0.426834 cons_dist: 0.007096, loss_weight: 0.000007
-  0%|                              | 6/3001 [00:26<3:26:10,  4.13s/it]iteration 13 : loss : 0.579240 cons_dist: 0.149869, loss_weight: 0.000007
-iteration 14 : loss : 0.576039 cons_dist: 0.062055, loss_weight: 0.000007
-  0%|                              | 7/3001 [00:29<3:21:21,  4.04s/it]iteration 15 : loss : 0.425949 cons_dist: 0.065517, loss_weight: 0.000007
-iteration 16 : loss : 0.619522 cons_dist: 0.030057, loss_weight: 0.000007
-  0%|                              | 8/3001 [00:34<3:22:17,  4.06s/it]iteration 17 : loss : 0.654963 cons_dist: 0.119589, loss_weight: 0.000007
-iteration 18 : loss : 0.473713 cons_dist: 0.045797, loss_weight: 0.000007
-  0%|                              | 9/3001 [00:38<3:29:18,  4.20s/it]iteration 19 : loss : 0.633469 cons_dist: 0.015667, loss_weight: 0.000007
-iteration 20 : loss : 0.499278 cons_dist: 0.009106, loss_weight: 0.000007
-  0%|                             | 10/3001 [00:42<3:28:33,  4.18s/it]iteration 21 : loss : 0.452857 cons_dist: 0.071446, loss_weight: 0.000007
-iteration 22 : loss : 0.435280 cons_dist: 0.068549, loss_weight: 0.000007
-  0%|                             | 11/3001 [00:46<3:23:20,  4.08s/it]iteration 23 : loss : 0.566887 cons_dist: 0.104381, loss_weight: 0.000007
-iteration 24 : loss : 0.518529 cons_dist: 0.015926, loss_weight: 0.000007
-  0%|                             | 12/3001 [00:50<3:22:18,  4.06s/it]iteration 25 : loss : 0.501130 cons_dist: 0.068458, loss_weight: 0.000007
-iteration 26 : loss : 0.498868 cons_dist: 0.006069, loss_weight: 0.000007
-  0%|▏                            | 13/3001 [00:54<3:18:11,  3.98s/it]iteration 27 : loss : 0.511501 cons_dist: 0.028241, loss_weight: 0.000007
-iteration 28 : loss : 0.440950 cons_dist: 0.016946, loss_weight: 0.000007
-  0%|▏                            | 14/3001 [00:57<3:11:02,  3.84s/it]iteration 29 : loss : 0.420642 cons_dist: 0.031545, loss_weight: 0.000007
-iteration 30 : loss : 0.498310 cons_dist: 0.032854, loss_weight: 0.000007
-  0%|▏                            | 15/3001 [01:02<3:17:14,  3.96s/it]iteration 31 : loss : 0.479285 cons_dist: 0.034292, loss_weight: 0.000007
-iteration 32 : loss : 0.586105 cons_dist: 0.011907, loss_weight: 0.000007
-  1%|▏                            | 16/3001 [01:05<3:10:54,  3.84s/it]iteration 33 : loss : 0.478466 cons_dist: 0.104475, loss_weight: 0.000007
-iteration 34 : loss : 0.458356 cons_dist: 0.077068, loss_weight: 0.000007
-  1%|▏                            | 17/3001 [01:09<3:04:17,  3.71s/it]iteration 35 : loss : 0.476475 cons_dist: 0.023018, loss_weight: 0.000007
-iteration 36 : loss : 0.435699 cons_dist: 0.009951, loss_weight: 0.000007
-  1%|▏                            | 18/3001 [01:12<2:58:22,  3.59s/it]iteration 37 : loss : 0.408584 cons_dist: 0.075809, loss_weight: 0.000007
-iteration 38 : loss : 0.462192 cons_dist: 0.027333, loss_weight: 0.000007
-  1%|▏                            | 19/3001 [01:16<3:00:20,  3.63s/it]iteration 39 : loss : 0.428794 cons_dist: 0.023771, loss_weight: 0.000007
-iteration 40 : loss : 0.543314 cons_dist: 0.024480, loss_weight: 0.000007
-  1%|▏                            | 20/3001 [01:19<3:01:16,  3.65s/it]iteration 41 : loss : 0.412307 cons_dist: 0.013587, loss_weight: 0.000007
-iteration 42 : loss : 0.442536 cons_dist: 0.031464, loss_weight: 0.000007
-  1%|▏                            | 21/3001 [01:23<3:02:32,  3.68s/it]iteration 43 : loss : 0.419384 cons_dist: 0.015734, loss_weight: 0.000007
-iteration 44 : loss : 0.451287 cons_dist: 0.053259, loss_weight: 0.000007
-  1%|▏                            | 22/3001 [01:26<2:56:27,  3.55s/it]iteration 45 : loss : 0.435965 cons_dist: 0.022642, loss_weight: 0.000007
-iteration 46 : loss : 0.408796 cons_dist: 0.016101, loss_weight: 0.000007
-  1%|▏                            | 23/3001 [01:30<2:58:18,  3.59s/it]iteration 47 : loss : 0.436096 cons_dist: 0.013039, loss_weight: 0.000007
-iteration 48 : loss : 0.458591 cons_dist: 0.027470, loss_weight: 0.000007
-  1%|▏                            | 24/3001 [01:34<3:05:56,  3.75s/it]iteration 49 : loss : 0.405868 cons_dist: 0.003841, loss_weight: 0.000007
-iteration 50 : loss : 0.464312 cons_dist: 0.020071, loss_weight: 0.000007
-  1%|▏                            | 25/3001 [01:38<3:07:22,  3.78s/it]iteration 51 : loss : 0.426887 cons_dist: 0.007773, loss_weight: 0.000007
-iteration 52 : loss : 0.454968 cons_dist: 0.011488, loss_weight: 0.000007
-  1%|▎                            | 26/3001 [01:42<3:07:45,  3.79s/it]iteration 53 : loss : 0.380664 cons_dist: 0.015516, loss_weight: 0.000007
-iteration 54 : loss : 0.451977 cons_dist: 0.022121, loss_weight: 0.000007
-  1%|▎                            | 27/3001 [01:45<3:04:25,  3.72s/it]iteration 55 : loss : 0.394078 cons_dist: 0.030170, loss_weight: 0.000007
-iteration 56 : loss : 0.432231 cons_dist: 0.003599, loss_weight: 0.000007
-  1%|▎                            | 28/3001 [01:49<3:02:47,  3.69s/it]iteration 57 : loss : 0.486585 cons_dist: 0.011318, loss_weight: 0.000007
-iteration 58 : loss : 0.379174 cons_dist: 0.007223, loss_weight: 0.000007
-  1%|▎                            | 29/3001 [01:52<3:00:30,  3.64s/it]iteration 59 : loss : 0.474811 cons_dist: 0.006320, loss_weight: 0.000007
-iteration 60 : loss : 0.389645 cons_dist: 0.064177, loss_weight: 0.000007
-  1%|▎                            | 30/3001 [01:56<2:56:23,  3.56s/it]iteration 61 : loss : 0.541585 cons_dist: 0.004763, loss_weight: 0.000007
-iteration 62 : loss : 0.382877 cons_dist: 0.063762, loss_weight: 0.000007
-  1%|▎                            | 31/3001 [01:59<2:53:55,  3.51s/it]iteration 63 : loss : 0.377728 cons_dist: 0.022269, loss_weight: 0.000007
-iteration 64 : loss : 0.380070 cons_dist: 0.004297, loss_weight: 0.000007
-  1%|▎                            | 32/3001 [02:03<2:59:00,  3.62s/it]iteration 65 : loss : 0.397711 cons_dist: 0.022019, loss_weight: 0.000007
-iteration 66 : loss : 0.331713 cons_dist: 0.028852, loss_weight: 0.000007
-  1%|▎                            | 33/3001 [02:07<3:02:30,  3.69s/it]iteration 67 : loss : 0.451190 cons_dist: 0.024993, loss_weight: 0.000007
-iteration 68 : loss : 0.472727 cons_dist: 0.020888, loss_weight: 0.000007
-  1%|▎                            | 34/3001 [02:11<3:02:15,  3.69s/it]iteration 69 : loss : 0.427437 cons_dist: 0.002817, loss_weight: 0.000007
-iteration 70 : loss : 0.373835 cons_dist: 0.007465, loss_weight: 0.000007
-  1%|▎                            | 35/3001 [02:14<2:55:15,  3.55s/it]iteration 71 : loss : 0.497656 cons_dist: 0.002217, loss_weight: 0.000007
-iteration 72 : loss : 0.421973 cons_dist: 0.033066, loss_weight: 0.000007
-  1%|▎                            | 36/3001 [02:17<2:54:27,  3.53s/it]iteration 73 : loss : 0.386638 cons_dist: 0.044647, loss_weight: 0.000007
-iteration 74 : loss : 0.517936 cons_dist: 0.011481, loss_weight: 0.000007
-  1%|▎                            | 37/3001 [02:21<2:52:53,  3.50s/it]iteration 75 : loss : 0.376923 cons_dist: 0.002967, loss_weight: 0.000007
-iteration 76 : loss : 0.401310 cons_dist: 0.041793, loss_weight: 0.000007
-  1%|▎                            | 38/3001 [02:24<2:51:31,  3.47s/it]iteration 77 : loss : 0.435209 cons_dist: 0.023439, loss_weight: 0.000007
-iteration 78 : loss : 0.428210 cons_dist: 0.006304, loss_weight: 0.000007
-  1%|▍                            | 39/3001 [02:28<2:53:59,  3.52s/it]iteration 79 : loss : 0.365093 cons_dist: 0.073123, loss_weight: 0.000007
-iteration 80 : loss : 0.407510 cons_dist: 0.011095, loss_weight: 0.000007
-  1%|▍                            | 40/3001 [02:32<2:57:25,  3.60s/it]iteration 81 : loss : 0.489854 cons_dist: 0.007191, loss_weight: 0.000007
-iteration 82 : loss : 0.354014 cons_dist: 0.038122, loss_weight: 0.000007
-  1%|▍                            | 41/3001 [02:36<3:02:01,  3.69s/it]iteration 83 : loss : 0.436138 cons_dist: 0.013571, loss_weight: 0.000007
-iteration 84 : loss : 0.366759 cons_dist: 0.017358, loss_weight: 0.000007
-  1%|▍                            | 42/3001 [02:39<2:57:57,  3.61s/it]iteration 85 : loss : 0.308456 cons_dist: 0.050722, loss_weight: 0.000007
-iteration 86 : loss : 0.355606 cons_dist: 0.008455, loss_weight: 0.000007
-  1%|▍                            | 43/3001 [02:42<2:54:10,  3.53s/it]iteration 87 : loss : 0.346504 cons_dist: 0.062169, loss_weight: 0.000007
-iteration 88 : loss : 0.517378 cons_dist: 0.026522, loss_weight: 0.000007

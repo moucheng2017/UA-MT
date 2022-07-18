@@ -46,7 +46,7 @@ parser.add_argument('--threshold', type=float,  default=0.0, help='confidence th
 args = parser.parse_args()
 
 train_data_path = args.root_path
-snapshot_path = "../model_mismatch_mask/" + args.exp + '_c' + str(args.consistency) + '_l' + str(args.labels) + '_t' + str(args.threshold) + "/"
+snapshot_path = "../model_mismatch/" + args.exp + '_c' + str(args.consistency) + '_l' + str(args.labels) + '_t' + str(args.threshold) + "/"
 # snapshot_path = "../" + args.save_location + '/' + args.exp + "/"
 
 os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
@@ -94,9 +94,9 @@ if __name__ == "__main__":
     ## make logger file
     if not os.path.exists(snapshot_path):
         os.makedirs(snapshot_path)
-    if os.path.exists(snapshot_path + '/code'):
-        shutil.rmtree(snapshot_path + '/code')
-    shutil.copytree('.', snapshot_path + '/code', shutil.ignore_patterns(['.git','__pycache__']))
+    # if os.path.exists(snapshot_path + '/code'):
+    #     shutil.rmtree(snapshot_path + '/code')
+    # shutil.copytree('.', snapshot_path + '/code', shutil.ignore_patterns(['.git','__pycache__']))
 
     logging.basicConfig(filename=snapshot_path+"/log.txt", level=logging.INFO,
                         format='[%(asctime)s.%(msecs)03d] %(message)s', datefmt='%H:%M:%S')
