@@ -37,7 +37,7 @@ parser.add_argument('--labels', type=int,  default=16, help='no of labelled data
 args = parser.parse_args()
 
 train_data_path = args.root_path
-snapshot_path = "../model/" + args.exp + "/"
+snapshot_path = "../model_sup/" + args.exp + '_l' + str(args.labels) + "/"
 
 os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
 batch_size = args.batch_size * len(args.gpu.split(','))
