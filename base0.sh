@@ -1,5 +1,5 @@
 #$ -l tmem=12G
-#$ -l gpu=true
+#$ -l gpu=true,gpu_type=(titanxp|titanx)
 #$ -S /bin/bash
 #$ -j y
 #$ -l h_rt=48:00:00
