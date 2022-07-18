@@ -188,6 +188,7 @@ class TwoStreamBatchSampler(Sampler):
     def __len__(self):
         return len(self.primary_indices) // self.primary_batch_size
 
+
 def iterate_once(iterable):
     return np.random.permutation(iterable)
 
