@@ -1,0 +1,8 @@
+GPU Prolog Script v1.10
+This is a GPU node.
+ERROR: unexpected pid running on card 0 on fozzie.local. PID: 13973 Owner: mouchexu
+GPU Epilog Script v0.30
+GPU Prolog Script v1.10
+This is a GPU node.
+Enough GPUs available.
+Allocating card 1
