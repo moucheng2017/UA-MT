@@ -43,10 +43,12 @@ parser.add_argument('--consistency_rampup', type=float,  default=40.0, help='con
 parser.add_argument('--labels', type=int,  default=2, help='no of labelled data points')
 parser.add_argument('--threshold', type=float,  default=0.0, help='confidence threshold for masking')
 
+parser.add_argument('--detach', default=True,  help='gradient stopping between the consistency regularisation')
+
 args = parser.parse_args()
 
 train_data_path = args.root_path
-snapshot_path = "../model_mismatch/" + args.exp + '_c' + str(args.consistency) + '_l' + str(args.labels) + '_t' + str(args.threshold) + "/"
+snapshot_path = "../model_mismatch/" + args.exp + '_c' + str(args.consistency) + '_l' + str(args.labels) + '_d_' + str(args.detach) + "/"
 # snapshot_path = "../" + args.save_location + '/' + args.exp + "/"
 
 os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
@@ -70,24 +72,6 @@ patch_size = (112, 112, 80)
 def get_current_consistency_weight(epoch):
     # Consistency ramp-up from https://arxiv.org/abs/1610.02242
     return args.consistency * ramps.sigmoid_rampup(epoch, args.consistency_rampup)
-
-
-# def softmax_mse_loss(inputs, targets, conf_mask=False, threshold=None, use_softmax=False):
-#     # assert inputs.requires_grad == True and targets.requires_grad == False
-#     # assert inputs.size() == targets.size() # (batch_size * num_classes * H * W)
-#     targets = targets.detach()
-#     inputs = F.softmax(inputs, dim=1)
-#     if use_softmax:
-#         targets = F.softmax(targets, dim=1)
-#
-#     if conf_mask:
-#         loss_mat = F.mse_loss(inputs, targets, reduction='none')
-#         mask = (targets.max(1)[0] > threshold)
-#         loss_mat = loss_mat[mask.unsqueeze(1).expand_as(loss_mat)]
-#         if loss_mat.shape.numel() == 0: loss_mat = torch.tensor([0.]).to(inputs.device)
-#         return loss_mat.mean()
-#     else:
-#         return F.mse_loss(inputs, targets, reduction='mean') # take the mean over the batch_size
 
 
 if __name__ == "__main__":
@@ -140,7 +124,6 @@ if __name__ == "__main__":
     trainloader = DataLoader(db_train, batch_sampler=batch_sampler, num_workers=4, pin_memory=True, worker_init_fn=worker_init_fn)
 
     model.train()
-    # ema_model.train()
     optimizer = optim.SGD(model.parameters(), lr=base_lr, momentum=0.9, weight_decay=0.0001)
 
     if args.consistency_type == 'mse':
@@ -172,9 +155,6 @@ if __name__ == "__main__":
             outputs_soft_p = F.softmax(outputs_p, dim=1)
             outputs_soft_n = F.softmax(outputs_n, dim=1)
 
-            # _, pseudo_label_p = torch.max(outputs_p, dim=1)
-            # _, pseudo_label_n = torch.max(outputs_n, dim=1)
-
             outputs_soft_avg = (outputs_soft_p + outputs_soft_n) / 2
 
             loss_seg_dice = losses.dice_loss(outputs_soft_avg[:labeled_bs, 1, :, :, :], label_batch[:labeled_bs] == 1)
@@ -182,13 +162,20 @@ if __name__ == "__main__":
 
             # calculate the unsupervised loss:
             consistency_weight = get_current_consistency_weight(iter_num//150)
-            mask = F.softmax((outputs_p[labeled_bs:] + outputs_n[labeled_bs:]) / 2, dim=1)
-            mask = (mask > args.threshold) # this might select only half of the digits
-            outputs_p_u = torch.masked_select(outputs_p[labeled_bs:], mask)
-            outputs_n_u = torch.masked_select(outputs_n[labeled_bs:], mask)
+            # mask = F.softmax((outputs_p[labeled_bs:] + outputs_n[labeled_bs:]) / 2, dim=1)
+            # mask = (mask > args.threshold) # this might select only half of the digits
+            # outputs_p_u = torch.masked_select(outputs_p[labeled_bs:], mask)
+            # outputs_n_u = torch.masked_select(outputs_n[labeled_bs:], mask)
 
-            consistency_dist = 0.5 * torch.nn.MSELoss(reduction='mean')(outputs_p_u, outputs_n_u.detach()) + \
-                               0.5 * torch.nn.MSELoss(reduction='mean')(outputs_n_u, outputs_p_u.detach())
+            outputs_p_u = outputs_p[labeled_bs:]
+            outputs_n_u = outputs_n[labeled_bs:]
+
+            if args.detach is True:
+                consistency_dist = 0.5 * torch.nn.MSELoss(reduction='mean')(outputs_p_u, outputs_n_u.detach()) + \
+                                   0.5 * torch.nn.MSELoss(reduction='mean')(outputs_n_u, outputs_p_u.detach())
+            else:
+                consistency_dist = 0.5 * torch.nn.MSELoss(reduction='mean')(outputs_p_u, outputs_n_u) + \
+                                   0.5 * torch.nn.MSELoss(reduction='mean')(outputs_n_u, outputs_p_u)
 
             consistency_loss = consistency_weight * consistency_dist
 
@@ -214,7 +201,6 @@ if __name__ == "__main__":
                 grid_image = make_grid(image, 5, normalize=True)
                 writer.add_image('train/Image', grid_image, iter_num)
 
-                # image = outputs_soft[0, 3:4, :, :, 20:61:10].permute(3, 0, 1, 2).repeat(1, 3, 1, 1)
                 image = torch.max(outputs_soft_avg[0, :, :, :, 20:61:10], 0)[1].permute(2, 0, 1).data.cpu().numpy()
                 image = utils.decode_seg_map_sequence(image)
                 grid_image = make_grid(image, 5, normalize=False)
@@ -224,20 +210,11 @@ if __name__ == "__main__":
                 grid_image = make_grid(utils.decode_seg_map_sequence(image.data.cpu().numpy()), 5, normalize=False)
                 writer.add_image('train/Groundtruth_label', grid_image, iter_num)
 
-                # image = uncertainty[0, 0:1, :, :, 20:61:10].permute(3, 0, 1, 2).repeat(1, 3, 1, 1)
-                # grid_image = make_grid(image, 5, normalize=True)
-                # writer.add_image('train/uncertainty', grid_image, iter_num)
-
-                # mask2 = (uncertainty > threshold).float()
-                # image = mask2[0, 0:1, :, :, 20:61:10].permute(3, 0, 1, 2).repeat(1, 3, 1, 1)
-                # grid_image = make_grid(image, 5, normalize=True)
-                # writer.add_image('train/mask', grid_image, iter_num)
                 #####
                 image = volume_batch[-1, 0:1, :, :, 20:61:10].permute(3, 0, 1, 2).repeat(1, 3, 1, 1)
                 grid_image = make_grid(image, 5, normalize=True)
                 writer.add_image('unlabel/Image', grid_image, iter_num)
 
-                # image = outputs_soft[-1, 3:4, :, :, 20:61:10].permute(3, 0, 1, 2).repeat(1, 3, 1, 1)
                 image = torch.max(outputs_soft_avg[-1, :, :, :, 20:61:10], 0)[1].permute(2, 0, 1).data.cpu().numpy()
                 image = utils.decode_seg_map_sequence(image)
                 grid_image = make_grid(image, 5, normalize=False)
