@@ -1,8 +1,8 @@
-#$ -l tmem=12G
+#$ -l tmem=16G
 #$ -l gpu=true,gpu_type=(rtx6000|rtx8000)
 #$ -S /bin/bash
 #$ -j y
-#$ -l h_rt=96:00:00
+#$ -l h_rt=48:00:00
 #$ -wd /SAN/medic/PerceptronHead/codes/UA-MT/code
 
 for alpha in {0.001,0.01,0.1,1.0,2.0,5.0,10.0}
