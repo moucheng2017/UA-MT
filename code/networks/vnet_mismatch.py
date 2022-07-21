@@ -487,7 +487,7 @@ class VNetMisMatchEfficient(nn.Module):
 
 
 class VNetMisMatch(nn.Module):
-    def __init__(self, n_channels=3, n_classes=2, n_filters=8, normalization='none', has_dropout=False):
+    def __init__(self, n_channels=3, n_classes=2, n_filters=8, normalization='none', dilation=6, has_dropout=False):
         super(VNetMisMatch, self).__init__()
         self.has_dropout = has_dropout
 
@@ -504,34 +504,33 @@ class VNetMisMatch(nn.Module):
         self.block_four_dw = DownsamplingConvBlock(n_filters * 8, n_filters * 16, normalization=normalization)
 
         self.block_five = ConvBlock(3, n_filters * 16, n_filters * 16, normalization=normalization)
-        self.block_five_up_p = PASBlock(n_filters * 16, n_filters * 8, normalization=normalization, upsampling=True)
+        self.block_five_up_p = PASBlock(n_filters * 16, n_filters * 8, normalization=normalization, upsampling=True, dilation_rate=dilation)
         self.block_five_up_n = NASBlock(n_filters * 16, n_filters * 8, normalization=normalization, upsampling=True)
 
-        self.block_six_p = PASBlock(n_filters * 8, n_filters * 8, normalization=normalization)
-        self.block_six_up_p = PASBlock(n_filters * 8, n_filters * 4, normalization=normalization, upsampling=True)
+        self.block_six_p = PASBlock(n_filters * 8, n_filters * 8, normalization=normalization, dilation_rate=dilation)
+        self.block_six_up_p = PASBlock(n_filters * 8, n_filters * 4, normalization=normalization, upsampling=True, dilation_rate=dilation)
 
         self.block_six_n = NASBlock(n_filters * 8, n_filters * 8, normalization=normalization)
         self.block_six_up_n = NASBlock(n_filters * 8, n_filters * 4, normalization=normalization, upsampling=True)
 
-        self.block_seven_p = PASBlock(n_filters * 4, n_filters * 4, normalization=normalization)
-        self.block_seven_up_p = PASBlock(n_filters * 4, n_filters * 2, normalization=normalization, upsampling=True)
+        self.block_seven_p = PASBlock(n_filters * 4, n_filters * 4, normalization=normalization, dilation_rate=dilation)
+        self.block_seven_up_p = PASBlock(n_filters * 4, n_filters * 2, normalization=normalization, upsampling=True, dilation_rate=dilation)
 
         self.block_seven_n = NASBlock(n_filters * 4, n_filters * 4, normalization=normalization)
         self.block_seven_up_n = NASBlock(n_filters * 4, n_filters * 2, normalization=normalization, upsampling=True)
 
-        self.block_eight_p = PASBlock(n_filters * 2, n_filters * 2, normalization=normalization)
-        self.block_eight_up_p = PASBlock(n_filters * 2, n_filters, normalization=normalization, upsampling=True)
+        self.block_eight_p = PASBlock(n_filters * 2, n_filters * 2, normalization=normalization, dilation_rate=dilation)
+        self.block_eight_up_p = PASBlock(n_filters * 2, n_filters, normalization=normalization, upsampling=True, dilation_rate=dilation)
 
         self.block_eight_n = NASBlock(n_filters * 2, n_filters * 2, normalization=normalization)
         self.block_eight_up_n = NASBlock(n_filters * 2, n_filters, normalization=normalization, upsampling=True)
 
-        self.block_nine_p = PASBlock(n_filters, n_filters, normalization=normalization)
+        self.block_nine_p = PASBlock(n_filters, n_filters, normalization=normalization, dilation_rate=dilation)
         self.block_nine_n = NASBlock(n_filters, n_filters, normalization=normalization)
 
         self.out_conv = nn.Conv3d(n_filters, n_classes, 1, padding=0)
 
         self.dropout = nn.Dropout3d(p=0.5, inplace=False)
-        # self.__init_weight()
 
     def encoder(self, input):
         x1 = self.block_one(input)
@@ -547,22 +546,19 @@ class VNetMisMatch(nn.Module):
         x4_dw = self.block_four_dw(x4)
 
         x5 = self.block_five(x4_dw)
-        # x5 = F.dropout3d(x5, p=0.5, training=True)
-        # if self.has_dropout:
-        #     x5 = self.dropout(x5)
 
         res = [x1, x2, x3, x4, x5]
 
         return res
 
     def decoder(self, features):
+
         x1 = features[0]
         x2 = features[1]
         x3 = features[2]
         x4 = features[3]
         x5 = features[4]
-        # print(x5.size())
-        # print(self.block_five_up_p)
+
         x5_up_p = self.block_five_up_p(x5)
         x5_up_p = x5_up_p + x4
         x5_up_n = self.block_five_up_n(x5)
@@ -591,11 +587,6 @@ class VNetMisMatch(nn.Module):
 
         x9p = self.block_nine_p(x8_up_p)
         x9n = self.block_nine_n(x8_up_n)
-        # x9 = F.dropout3d(x9, p=0.5, training=True)
-        # if self.has_dropout:
-        #     x9p = self.dropout(x9p)
-        # if self.has_dropout:
-        #     x9n = self.dropout(x9n)
         out_p = self.out_conv(x9p)
         out_n = self.out_conv(x9n)
         return out_p, out_n
