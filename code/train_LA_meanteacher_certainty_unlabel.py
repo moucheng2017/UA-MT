@@ -28,7 +28,7 @@ parser.add_argument('--exp', type=str,  default='UAMT_unlabel', help='model_name
 parser.add_argument('--max_iterations', type=int,  default=6000, help='maximum epoch number to train')
 parser.add_argument('--batch_size', type=int, default=2, help='batch_size per gpu')
 parser.add_argument('--labeled_bs', type=int, default=1, help='labeled_batch_size per gpu')
-parser.add_argument('--width', type=str,  default=8, help='number of filters')
+parser.add_argument('--width', type=int,  default=8, help='number of filters')
 parser.add_argument('--base_lr', type=float,  default=0.01, help='maximum epoch number to train')
 parser.add_argument('--deterministic', type=int,  default=1, help='whether use deterministic training')
 parser.add_argument('--seed', type=int,  default=1337, help='random seed')
@@ -45,7 +45,7 @@ args = parser.parse_args()
 
 train_data_path = args.root_path
 
-snapshot_path = "../model/" + args.exp + '_c' + str(args.consistency) + '_l' + str(args.labels) + "/"
+snapshot_path = "../model/" + args.exp + '_c' + str(args.consistency) + '_l' + str(args.labels) + '_w' + str(args.width) + "/"
 
 
 os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu

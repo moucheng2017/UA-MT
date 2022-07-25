@@ -27,7 +27,7 @@ parser.add_argument('--root_path', type=str, default='../data/2018LA_Seg_Trainin
 parser.add_argument('--exp', type=str,  default='Mismatch_unlabel', help='model_name')
 parser.add_argument('--max_iterations', type=int,  default=6000, help='maximum epoch number to train')
 parser.add_argument('--batch_size', type=int, default=2, help='batch_size per gpu')
-parser.add_argument('--width', type=str,  default=8, help='number of filters')
+parser.add_argument('--width', type=int,  default=8, help='number of filters')
 parser.add_argument('--labeled_bs', type=int, default=1, help='labeled_batch_size per gpu')
 parser.add_argument('--base_lr', type=float,  default=0.01, help='maximum epoch number to train')
 parser.add_argument('--deterministic', type=int,  default=1, help='whether use deterministic training')
